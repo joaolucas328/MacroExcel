@@ -5,9 +5,9 @@ import time
 import keyboard
 import pyautogui
 
-# =========================
-# ESTADO GLOBAL
-# =========================
+
+# GLOBAL
+
 macro_rodando = False
 escutando_rebind = None
 
@@ -18,9 +18,9 @@ teclas = {
 
 hotkeys = []
 
-# =========================
+
 # FUNÇÕES DE CONTROLE
-# =========================
+
 def iniciar_parar():
     global macro_rodando
     macro_rodando = not macro_rodando
@@ -35,9 +35,9 @@ def atualizar_status():
         fg="green" if macro_rodando else "red"
     )
 
-# =========================
+
 # HOTKEYS
-# =========================
+
 def registrar_hotkeys():
     for hk in hotkeys:
         keyboard.remove_hotkey(hk)
@@ -71,9 +71,9 @@ def tratar_rebind(event):
     keyboard.unhook_all()
     escutando_rebind = None
 
-# =========================
+
 # INTERFACE
-# =========================
+
 janela = tk.Tk()
 janela.title("Macro de Cliques")
 janela.geometry("680x520")
@@ -93,9 +93,9 @@ label_status = tk.Label(
 )
 label_status.pack()
 
-# =========================
+
 # TECLAS
-# =========================
+
 frame_teclas = ttk.LabelFrame(janela, text="Teclas de Atalho")
 frame_teclas.pack(fill="x", padx=10, pady=10)
 
@@ -124,9 +124,9 @@ criar_linha_tecla("Iniciar / Pausar:", "iniciar_parar")
 criar_linha_tecla("Sair:", "sair")
 atualizar_labels_teclas()
 
-# =========================
-# CLIQUES (FOR RANGE MANTIDO)
-# =========================
+
+# CLIQUES
+
 frame_cliques = ttk.LabelFrame(janela, text="Cliques")
 frame_cliques.pack(fill="x", padx=10, pady=10)
 
@@ -166,9 +166,9 @@ for i in range(6):
 
     cliques.append((x, y, tempo))
 
-# =========================
+
 # LOOP
-# =========================
+
 frame_loop = ttk.LabelFrame(janela, text="Loop")
 frame_loop.pack(fill="x", padx=10, pady=10)
 
@@ -178,9 +178,9 @@ ttk.Label(frame_loop, text="Tempo para repetir tudo:").pack(side="left", padx=5)
 ttk.Entry(frame_loop, width=6, textvariable=tempo_loop).pack(side="left")
 ttk.Label(frame_loop, text="segundos").pack(side="left")
 
-# =========================
-# LOOP DA MACRO
-# =========================
+
+# LOOP DO MACRO
+
 def loop_macro():
     while True:
         if macro_rodando:
@@ -191,9 +191,9 @@ def loop_macro():
         else:
             time.sleep(0.1)
 
-# =========================
+
 # INICIALIZAÇÃO
-# =========================
+
 registrar_hotkeys()
 threading.Thread(target=loop_macro, daemon=True).start()
 
