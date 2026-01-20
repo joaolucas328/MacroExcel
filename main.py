@@ -4,12 +4,13 @@ import threading
 import time
 import keyboard
 import pyautogui
+import pyperclip
 
 
-# GLOBAL
+# ESTADO GLOBAL
+
 
 macro_rodando = False
-escutando_rebind = None
 
 teclas = {
     "iniciar_parar": "f8",
@@ -19,113 +20,82 @@ teclas = {
 hotkeys = []
 
 
-# FUNÇÕES DE CONTROLE
+# FUNÇÕES
+
+
+def copiar_valor():
+    pyautogui.hotkey("ctrl", "a")
+    time.sleep(0.05)
+    pyautogui.hotkey("ctrl", "c")
+    time.sleep(0.1)
+
+    texto = pyperclip.paste()
+    texto = texto.replace("R$", "").replace(".", "").replace(",", ".").strip()
+
+    try:
+        return float(texto)
+    except:
+        return None
+
+
+def clique_duplo_seguro(x, y, tempo):
+    pyautogui.mouseUp()
+    time.sleep(0.05)
+    pyautogui.moveTo(x, y)
+    time.sleep(0.05)
+    pyautogui.doubleClick()
+    time.sleep(tempo)
+
+
+def clique_simples_seguro(x, y, tempo):
+    pyautogui.mouseUp()
+    time.sleep(0.05)
+    pyautogui.moveTo(x, y)
+    time.sleep(0.05)
+    pyautogui.click()
+    time.sleep(tempo)
+
+
+# CONTROLE
+
 
 def iniciar_parar():
     global macro_rodando
     macro_rodando = not macro_rodando
-    atualizar_status()
-
-def sair():
-    janela.destroy()
-
-def atualizar_status():
     label_status.config(
         text=f"Status: {'Rodando' if macro_rodando else 'Parado'}",
         fg="green" if macro_rodando else "red"
     )
 
-
-# HOTKEYS
+def sair():
+    janela.destroy()
 
 def registrar_hotkeys():
     for hk in hotkeys:
         keyboard.remove_hotkey(hk)
     hotkeys.clear()
 
-    hotkeys.append(
-        keyboard.add_hotkey(teclas["iniciar_parar"], iniciar_parar)
-    )
-    hotkeys.append(
-        keyboard.add_hotkey(teclas["sair"], sair)
-    )
-
-def iniciar_rebind(acao):
-    global escutando_rebind
-    escutando_rebind = acao
-    messagebox.showinfo(
-        "Redefinir tecla",
-        f"Pressione a nova tecla para {acao.replace('_',' ')}"
-    )
-    keyboard.on_press(tratar_rebind)
-
-def tratar_rebind(event):
-    global escutando_rebind
-    if not escutando_rebind:
-        return
-
-    teclas[escutando_rebind] = event.name
-    atualizar_labels_teclas()
-    registrar_hotkeys()
-
-    keyboard.unhook_all()
-    escutando_rebind = None
-
+    hotkeys.append(keyboard.add_hotkey(teclas["iniciar_parar"], iniciar_parar))
+    hotkeys.append(keyboard.add_hotkey(teclas["sair"], sair))
 
 # INTERFACE
 
-janela = tk.Tk()
-janela.title("Macro de Cliques")
-janela.geometry("680x520")
-janela.resizable(False, False)
 
-tk.Label(
-    janela,
-    text="Macro de Cliques - Excel",
-    font=("Arial", 14, "bold")
-).pack(pady=8)
+janela = tk.Tk()
+janela.title("Macro Excel")
+janela.geometry("320x500")
+janela.resizable(True, True)
+
+tk.Label(janela, text="Macro Excel", font=("Arial", 14, "bold")).pack(pady=8)
 
 label_status = tk.Label(
-    janela,
-    text="Status: Parado",
-    fg="red",
-    font=("Arial", 11, "bold")
+    janela, text="Status: Parado", fg="red", font=("Arial", 11, "bold")
 )
 label_status.pack()
 
 
-# TECLAS
-
-frame_teclas = ttk.LabelFrame(janela, text="Teclas de Atalho")
-frame_teclas.pack(fill="x", padx=10, pady=10)
-
-labels_teclas = {}
-
-def atualizar_labels_teclas():
-    labels_teclas["iniciar_parar"].config(text=teclas["iniciar_parar"].upper())
-    labels_teclas["sair"].config(text=teclas["sair"].upper())
-
-def criar_linha_tecla(texto, acao):
-    f = ttk.Frame(frame_teclas)
-    f.pack(fill="x", pady=4)
-
-    ttk.Label(f, text=texto, width=18).pack(side="left")
-    lbl = ttk.Label(f, width=8)
-    lbl.pack(side="left")
-    labels_teclas[acao] = lbl
-
-    ttk.Button(
-        f,
-        text="Redefinir",
-        command=lambda: iniciar_rebind(acao)
-    ).pack(side="left", padx=5)
-
-criar_linha_tecla("Iniciar / Pausar:", "iniciar_parar")
-criar_linha_tecla("Sair:", "sair")
-atualizar_labels_teclas()
-
-
 # CLIQUES
+
 
 frame_cliques = ttk.LabelFrame(janela, text="Cliques")
 frame_cliques.pack(fill="x", padx=10, pady=10)
@@ -133,24 +103,21 @@ frame_cliques.pack(fill="x", padx=10, pady=10)
 cliques = []
 
 def capturar_posicao(x_var, y_var):
-    messagebox.showinfo(
-        "Capturar posição",
-        "Posicione o mouse e pressione ENTER"
-    )
+    messagebox.showinfo("Capturar", "Posicione o mouse e pressione ENTER")
     keyboard.wait("enter")
     pos = pyautogui.position()
     x_var.set(pos.x)
     y_var.set(pos.y)
 
-for i in range(6):
+for i in range(11):
     linha = ttk.Frame(frame_cliques)
-    linha.pack(fill="x", pady=5)
+    linha.pack(fill="x", pady=4)
 
     ttk.Label(linha, text=f"Clique {i+1}", width=10).pack(side="left")
 
     x = tk.IntVar(value=0)
     y = tk.IntVar(value=0)
-    tempo = tk.DoubleVar(value=1.0)
+    tempo = tk.DoubleVar(value=1.5)
 
     ttk.Entry(linha, width=6, textvariable=x).pack(side="left", padx=3)
     ttk.Entry(linha, width=6, textvariable=y).pack(side="left", padx=3)
@@ -162,39 +129,69 @@ for i in range(6):
         command=lambda xv=x, yv=y: capturar_posicao(xv, yv)
     ).pack(side="left", padx=5)
 
-    ttk.Label(linha, text="X  Y  Tempo").pack(side="left", padx=5)
-
     cliques.append((x, y, tempo))
-
-
-# LOOP
-
-frame_loop = ttk.LabelFrame(janela, text="Loop")
-frame_loop.pack(fill="x", padx=10, pady=10)
-
-tempo_loop = tk.DoubleVar(value=5.0)
-
-ttk.Label(frame_loop, text="Tempo para repetir tudo:").pack(side="left", padx=5)
-ttk.Entry(frame_loop, width=6, textvariable=tempo_loop).pack(side="left")
-ttk.Label(frame_loop, text="segundos").pack(side="left")
 
 
 # LOOP DO MACRO
 
+
 def loop_macro():
     while True:
-        if macro_rodando:
-            for x, y, tempo in cliques:
-                pyautogui.click(x.get(), y.get())
-                time.sleep(tempo.get())
-            time.sleep(tempo_loop.get())
-        else:
+        if not macro_rodando:
             time.sleep(0.1)
+            continue
+
+        # 1
+        clique_duplo_seguro(cliques[0][0].get(), cliques[0][1].get(), cliques[0][2].get())
+        valor_base = copiar_valor()
+        if valor_base is None:
+            continue
+        valor_base *= 2.77
+
+        # 2
+        clique_duplo_seguro(cliques[1][0].get(), cliques[1][1].get(), cliques[1][2].get())
+        copiar_valor()
+
+        # 3
+        clique_simples_seguro(cliques[2][0].get(), cliques[2][1].get(), cliques[2][2].get())
+
+        # 4
+        clique_simples_seguro(cliques[3][0].get(), cliques[3][1].get(), 0.1)
+        pyautogui.hotkey("ctrl", "v")
+        pyautogui.press("enter")
+        time.sleep(cliques[3][2].get())
+
+        # 5
+        clique_duplo_seguro(cliques[4][0].get(), cliques[4][1].get(), cliques[4][2].get())
+
+        # 6
+        clique_simples_seguro(cliques[5][0].get(), cliques[5][1].get(), cliques[5][2].get())
+        valor_atual = copiar_valor()
+        if valor_atual is None:
+            continue
+
+        # 7
+        clique_simples_seguro(cliques[6][0].get(), cliques[6][1].get(), cliques[6][2].get())
+
+        # 8
+        clique_simples_seguro(cliques[7][0].get(), cliques[7][1].get(), cliques[7][2].get())
+
+        # 9
+        clique_simples_seguro(cliques[8][0].get(), cliques[8][1].get(), cliques[8][2].get())
+
+        # CONDIÇÃO
+        if valor_atual < valor_base:
+            clique_simples_seguro(cliques[9][0].get(), cliques[9][1].get(), cliques[9][2].get())
+            pyautogui.scroll(-100)
+        else:
+            clique_simples_seguro(cliques[10][0].get(), cliques[10][1].get(), cliques[10][2].get())
+            pyautogui.scroll(-100)
+
+        time.sleep(2)
 
 
 # INICIALIZAÇÃO
 
 registrar_hotkeys()
 threading.Thread(target=loop_macro, daemon=True).start()
-
 janela.mainloop()
